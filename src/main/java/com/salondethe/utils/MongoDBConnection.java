@@ -16,7 +16,7 @@ public class MongoDBConnection {
             mongoClient = MongoClients.create(connectionString);
 
             // Sélection de la base de données
-            database = mongoClient.getDatabase("salondeth"); // Nom de la base de données
+            database = mongoClient.getDatabase("salondethe"); // Nom de la base de données
         }
         return database;
     }

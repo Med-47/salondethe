@@ -1,62 +1,81 @@
 package com.salondethe.resources;
 
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
+import com.salondethe.model.Commande;
+import com.salondethe.utils.MongoDBConnection;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.salondethe.model.Commande;
-
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+import static com.mongodb.client.model.Filters.eq;
 
 @Path("/commandes")
 public class CommandeResource {
-    private static List<Commande> commandes = new ArrayList<>();
+
+    private final MongoCollection<Commande> commandeCollection;
+
+    public CommandeResource() {
+        this.commandeCollection = MongoDBConnection.getDatabase().getCollection("commandes", Commande.class);
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Commande> getCommandes() {
-        return commandes;
+    public Response getCommandes() {
+        List<Commande> commandes = commandeCollection.find().into(new ArrayList<>());
+        return Response.ok(commandes).build();
     }
 
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Commande getCommandeById(@PathParam("id") String idCommande) {
-        return commandes.stream()
-                .filter(commande -> commande.getIdCommande().toString().equals(idCommande))
-                .findFirst()
-                .orElse(null);
+    public Response getCommandeById(@PathParam("id") String idCommande) {
+        Commande commande = commandeCollection.find(eq("_id", new ObjectId(idCommande))).first();
+        if (commande != null) {
+            return Response.ok(commande).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Commande not found").build();
+        }
     }
 
     @POST
     @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void createCommande(Commande commande) {
-        commandes.add(commande);
+    public Response createCommande(Commande commande) {
+        commande.setIdCommande(new ObjectId());
+        commandeCollection.insertOne(commande);
+        return Response.status(Response.Status.CREATED).entity(commande).build();
     }
 
     @PUT
     @Path("/edit/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void editCommande(@PathParam("id") String idCommande, Commande updatedCommande) {
-        commandes.replaceAll(commande -> {
-            if (commande.getIdCommande().toString().equals(idCommande)) {
-                return updatedCommande;
-            }
-            return commande;
-        });
+    public Response editCommande(@PathParam("id") String idCommande, Commande updatedCommande) {
+        Bson filter = eq("_id", new ObjectId(idCommande));
+        Bson update = new org.bson.Document("$set", updatedCommande);
+        UpdateResult result = commandeCollection.updateOne(filter, update);
+        if (result.getModifiedCount() > 0) {
+            return Response.ok().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Commande not found").build();
+        }
     }
 
     @DELETE
     @Path("/remove/{id}")
-    public void removeCommande(@PathParam("id") String idCommande) {
-        commandes.removeIf(commande -> commande.getIdCommande().toString().equals(idCommande));
+    public Response removeCommande(@PathParam("id") String idCommande) {
+        Bson filter = eq("_id", new ObjectId(idCommande));
+        DeleteResult result = commandeCollection.deleteOne(filter);
+        if (result.getDeletedCount() > 0) {
+            return Response.noContent().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Commande not found").build();
+        }
     }
 }
