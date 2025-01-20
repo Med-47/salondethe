@@ -1,9 +1,18 @@
 package com.salondethe;
 
-import jakarta.ws.rs.GET;
+import com.salondethe.resources.CategoryResource;
+import com.salondethe.resources.CommandeResource;
+import com.salondethe.resources.ProduitResource;
+import com.salondethe.resources.ServeurResource;
+import com.salondethe.resources.TableResource;
+
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
+
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * Root resource (exposed at "myresource" path)
@@ -11,15 +20,22 @@ import jakarta.ws.rs.core.MediaType;
 @Path("myresource")
 public class MyResource {
 
-    /**
-     * Method handling HTTP GET requests. The returned object will be sent
-     * to the client as "text/plain" media type.
-     *
-     * @return String that will be returned as a text/plain response.
-     */
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getIt() {
-        return "Got it!";
+    public static void main(String[] args) throws IOException {
+        // Create a ResourceConfig and register all resource classes
+        ResourceConfig config = new ResourceConfig()
+                .register(CategoryResource.class)
+                .register(CommandeResource.class)
+                .register(ProduitResource.class)
+                .register(ServeurResource.class)
+                .register(TableResource.class);
+
+        // Start the Grizzly HTTP server
+        URI baseUri = URI.create("http://localhost:8081/");
+        GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
+
+        System.out.println("Server started at " + baseUri);
+
+        // Block the main thread to keep the server running
+        System.in.read(); // Wait for Enter key to stop the server
     }
 }

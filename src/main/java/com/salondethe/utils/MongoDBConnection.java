@@ -5,26 +5,17 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
 public class MongoDBConnection {
-    private static MongoClient mongoClient;
+
+    private static final String CONNECTION_STRING = "mongodb://localhost:27017"; // Adjust as needed
+    private static final String DATABASE_NAME = "salondethe"; // Adjust as needed
     private static MongoDatabase database;
 
-    // Méthode pour obtenir la base de données
-    public static MongoDatabase getDatabase() {
-        if (database == null) {
-            // Connexion à MongoDB
-            String connectionString = "mongodb://localhost:27017"; // URL de connexion
-            mongoClient = MongoClients.create(connectionString);
-
-            // Sélection de la base de données
-            database = mongoClient.getDatabase("salondeth"); // Nom de la base de données
-        }
-        return database;
+    static {
+        MongoClient mongoClient = MongoClients.create(CONNECTION_STRING);
+        database = mongoClient.getDatabase(DATABASE_NAME);
     }
 
-    // Méthode pour fermer la connexion
-    public static void closeConnection() {
-        if (mongoClient != null) {
-            mongoClient.close();
-        }
+    public static MongoDatabase getDatabase() {
+        return database;
     }
 }

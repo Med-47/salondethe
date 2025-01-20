@@ -2,6 +2,7 @@ package com.salondethe.model;
 import org.bson.types.ObjectId;
 
 public class Serveur {
+    
     private ObjectId idServeur;
     private String nom;
     private String numTelephone;
