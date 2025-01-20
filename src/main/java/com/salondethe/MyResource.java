@@ -6,12 +6,10 @@ import com.salondethe.resources.ProduitResource;
 import com.salondethe.resources.ServeurResource;
 import com.salondethe.resources.TableResource;
 
-import jakarta.ws.rs.Path;
 
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import java.io.IOException;
 import java.net.URI;
 
 import org.glassfish.grizzly.http.server.HttpServer;

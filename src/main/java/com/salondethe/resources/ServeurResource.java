@@ -27,6 +27,7 @@ public class ServeurResource {
     @POST
 @Path("/create")
 @Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 public Response createServeur(Serveur serveur) {
     // Generate a new ObjectId before saving
     serveur.setIdServeur(new ObjectId());  
