@@ -1,62 +1,100 @@
 package com.salondethe.resources;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.salondethe.model.Produit;
-
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import com.salondethe.model.Category;
+import com.salondethe.utils.MongoDBConnection;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import org.bson.Document;
+import org.bson.types.ObjectId;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+
+import static com.mongodb.client.model.Filters.eq;
+
+import java.util.ArrayList;
 
 @Path("/produits")
 public class ProduitResource {
-    private static List<Produit> produits = new ArrayList<>();
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Produit> getProduits() {
-        return produits;
-    }
+    private final MongoCollection<Produit> produitCollection;
+    private final MongoCollection<Category> categoryCollection;
+    private MongoDatabase database = MongoDBConnection.getDatabase();
 
-    @GET
-    @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Produit getProduitById(@PathParam("id") String idProduit) {
-        return produits.stream()
-                .filter(produit -> produit.getIdProduit().toString().equals(idProduit))
-                .findFirst()
-                .orElse(null);
+
+    public ProduitResource() {
+        this.produitCollection = MongoDBConnection.getDatabase().getCollection("produits", Produit.class);
+        this.categoryCollection = MongoDBConnection.getDatabase().getCollection("categories", Category.class);
     }
 
     @POST
     @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void createProduit(Produit produit) {
-        produits.add(produit);
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createProduit(Produit produit) {
+        // Validate if the category exists
+        Category category = categoryCollection.find(new Document("_id", produit.getIdCategory())).first();
+        if (category == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Category not found").build();
+        }
+
+        // Insert the produit
+        produitCollection.insertOne(produit);
+
+        // Add the produit id to the category's produits list
+        category.getProduits().add(produit.getIdProduit());
+
+        // Update the category with the new produit id
+        categoryCollection.replaceOne(new Document("_id", produit.getIdCategory()), category);
+
+        return Response.status(Response.Status.CREATED).entity(produit).build();
     }
 
     @PUT
-    @Path("/edit/{id}")
+    @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void editProduit(@PathParam("id") String idProduit, Produit updatedProduit) {
-        produits.replaceAll(produit -> {
-            if (produit.getIdProduit().toString().equals(idProduit)) {
-                return updatedProduit;
-            }
-            return produit;
-        });
+    public Response updateProduit(@PathParam("id") String idProduit, Produit updatedProduit) {
+        // Check if the category exists
+        if (categoryCollection.find(eq("_id", updatedProduit.getIdCategory())).first() == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Category not found").build();
+        }
+
+        var result = produitCollection.replaceOne(eq("_id", new ObjectId(idProduit)), updatedProduit);
+        if (result.getModifiedCount() > 0) {
+            return Response.ok(updatedProduit).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Produit not found").build();
+        }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getProduits() {
+        return Response.ok(produitCollection.find().into(new ArrayList<>())).build();
+    }
+
+    @GET
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getProduitById(@PathParam("id") String idProduit) {
+        Produit produit = produitCollection.find(eq("_id", new ObjectId(idProduit))).first();
+        if (produit != null) {
+            return Response.ok(produit).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Produit not found").build();
+        }
     }
 
     @DELETE
-    @Path("/remove/{id}")
-    public void removeProduit(@PathParam("id") String idProduit) {
-        produits.removeIf(produit -> produit.getIdProduit().toString().equals(idProduit));
+    @Path("/{id}")
+    public Response deleteProduit(@PathParam("id") String idProduit) {
+        var result = produitCollection.deleteOne(eq("_id", new ObjectId(idProduit)));
+        if (result.getDeletedCount() > 0) {
+            return Response.noContent().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Produit not found").build();
+        }
     }
 }

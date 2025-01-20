@@ -1,61 +1,74 @@
 package com.salondethe.model;
 
 import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 public class Produit {
-   private ObjectId idProduit;
-   private ObjectId idCategory;
-   private String nomProduit;
-   private String descriptionProduit;
-   private double prixProduit;
 
-   public Produit() {
-   }
+    @BsonId
+    private ObjectId idProduit;
 
-   public Produit(ObjectId idCategory, String nomProduit, String descriptionProduit, double prixProduit) {
-      this.idCategory = idCategory;
-      this.nomProduit = nomProduit;
-      this.descriptionProduit = descriptionProduit;
-      this.prixProduit = prixProduit;
-   }
+    @BsonProperty("idCategory")
+    private ObjectId idCategory;
 
-   public ObjectId getIdProduit() {
-      return this.idProduit;
-   }
+    @BsonProperty("nomProduit")
+    private String nomProduit;
 
-   public void setIdProduit(ObjectId idProduit) {
-      this.idProduit = idProduit;
-   }
+    @BsonProperty("descriptionProduit")
+    private String descriptionProduit;
 
-   public ObjectId getIdCategory() {
-      return this.idCategory;
-   }
+    @BsonProperty("prixProduit")
+    private double prixProduit;
 
-   public void setIdCategory(ObjectId idCategory) {
-      this.idCategory = idCategory;
-   }
+    // Constructors
+    public Produit() {}
 
-   public String getNomProduit() {
-      return this.nomProduit;
-   }
+    public Produit(ObjectId idCategory, String nomProduit, String descriptionProduit, double prixProduit) {
+        this.idCategory = idCategory;
+        this.nomProduit = nomProduit;
+        this.descriptionProduit = descriptionProduit;
+        this.prixProduit = prixProduit;
+    }
 
-   public void setNomProduit(String nomProduit) {
-      this.nomProduit = nomProduit;
-   }
+    // Getters and Setters
+    public ObjectId getIdProduit() {
+        return idProduit;
+    }
 
-   public String getDescriptionProduit() {
-      return this.descriptionProduit;
-   }
+    public void setIdProduit(ObjectId idProduit) {
+        this.idProduit = idProduit;
+    }
 
-   public void setDescriptionProduit(String descriptionProduit) {
-      this.descriptionProduit = descriptionProduit;
-   }
+    public ObjectId getIdCategory() {
+        return idCategory;
+    }
 
-   public double getPrixProduit() {
-      return this.prixProduit;
-   }
+    public void setIdCategory(ObjectId idCategory) {
+        this.idCategory = idCategory;
+    }
 
-   public void setPrixProduit(double prixProduit) {
-      this.prixProduit = prixProduit;
-   }
+    public String getNomProduit() {
+        return nomProduit;
+    }
+
+    public void setNomProduit(String nomProduit) {
+        this.nomProduit = nomProduit;
+    }
+
+    public String getDescriptionProduit() {
+        return descriptionProduit;
+    }
+
+    public void setDescriptionProduit(String descriptionProduit) {
+        this.descriptionProduit = descriptionProduit;
+    }
+
+    public double getPrixProduit() {
+        return prixProduit;
+    }
+
+    public void setPrixProduit(double prixProduit) {
+        this.prixProduit = prixProduit;
+    }
 }

@@ -1,62 +1,73 @@
 package com.salondethe.resources;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.salondethe.model.Category;
-
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import com.salondethe.utils.MongoDBConnection;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.bson.types.ObjectId;
+import com.mongodb.client.MongoCollection;
+
+import static com.mongodb.client.model.Filters.eq;
+import java.util.ArrayList;
 
 @Path("/categories")
 public class CategoryResource {
-    private static List<Category> categories = new ArrayList<>();
+
+    private final MongoCollection<Category> categoryCollection;
+
+    public CategoryResource() {
+        this.categoryCollection = MongoDBConnection.getDatabase().getCollection("categories", Category.class);
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Category> getCategories() {
-        return categories;
+    public Response getCategories() {
+        return Response.ok(categoryCollection.find().into(new ArrayList<>())).build();
     }
 
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Category getCategoryById(@PathParam("id") String idCategory) {
-        return categories.stream()
-                .filter(category -> category.getIdCategory().toString().equals(idCategory))
-                .findFirst()
-                .orElse(null);
+    public Response getCategoryById(@PathParam("id") String idCategory) {
+        Category category = categoryCollection.find(eq("_id", new ObjectId(idCategory))).first();
+        if (category != null) {
+            return Response.ok(category).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Category not found").build();
+        }
     }
 
     @POST
-    @Path("/create")
+    @Path("create")
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public void createCategory(Category category) {
-        categories.add(category);
+    public Response createCategory(Category category) {
+        category.setIdCategory(new ObjectId());
+        categoryCollection.insertOne(category);
+        return Response.status(Response.Status.CREATED).entity(category).build();
     }
 
     @PUT
-    @Path("/edit/{id}")
+    @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void editCategory(@PathParam("id") String idCategory, Category updatedCategory) {
-        categories.replaceAll(category -> {
-            if (category.getIdCategory().toString().equals(idCategory)) {
-                return updatedCategory;
-            }
-            return category;
-        });
+    public Response updateCategory(@PathParam("id") String idCategory, Category updatedCategory) {
+        var result = categoryCollection.replaceOne(eq("_id", new ObjectId(idCategory)), updatedCategory);
+        if (result.getModifiedCount() > 0) {
+            return Response.ok(updatedCategory).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Category not found").build();
+        }
     }
 
     @DELETE
-    @Path("/remove/{id}")
-    public void removeCategory(@PathParam("id") String idCategory) {
-        categories.removeIf(category -> category.getIdCategory().toString().equals(idCategory));
+    @Path("/{id}")
+    public Response deleteCategory(@PathParam("id") String idCategory) {
+        var result = categoryCollection.deleteOne(eq("_id", new ObjectId(idCategory)));
+        if (result.getDeletedCount() > 0) {
+            return Response.noContent().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Category not found").build();
+        }
     }
 }

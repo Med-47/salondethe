@@ -1,62 +1,84 @@
 package com.salondethe.resources;
 
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
+import com.salondethe.model.Table;
+import com.salondethe.utils.MongoDBConnection;
+
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.salondethe.model.Table;
-
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+import static com.mongodb.client.model.Filters.eq;
 
 @Path("/tables")
 public class TableResource {
-    private static List<Table> tables = new ArrayList<>();
+
+    private final MongoCollection<Table> tableCollection;
+
+    public TableResource() {
+        this.tableCollection = MongoDBConnection.getDatabase().getCollection("tables", Table.class);
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Table> getTables() {
-        return tables;
+    public Response getTables() {
+        List<Table> tables = tableCollection.find().into(new ArrayList<>());
+        return Response.ok(tables).build();
     }
 
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Table getTableById(@PathParam("id") String idTable) {
-        return tables.stream()
-                .filter(table -> table.getIdTable().toString().equals(idTable))
-                .findFirst()
-                .orElse(null);
+    public Response getTableById(@PathParam("id") String idTable) {
+        Table table = tableCollection.find(eq("_id", new ObjectId(idTable))).first();
+        if (table != null) {
+            return Response.ok(table).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Table not found").build();
+        }
     }
 
     @POST
     @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void createTable(Table table) {
-        tables.add(table);
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createTable(Table table) {
+        table.setIdTable(new ObjectId());
+        tableCollection.insertOne(table);
+        return Response.status(Response.Status.CREATED).entity(table).build();
     }
 
     @PUT
     @Path("/edit/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void editTable(@PathParam("id") String idTable, Table updatedTable) {
-        tables.replaceAll(table -> {
-            if (table.getIdTable().toString().equals(idTable)) {
-                return updatedTable;
-            }
-            return table;
-        });
+    public Response editTable(@PathParam("id") String idTable, Table updatedTable) {
+        Bson filter = eq("_id", new ObjectId(idTable));
+        Bson update = new org.bson.Document("$set", updatedTable);
+        UpdateResult result = tableCollection.updateOne(filter, update);
+        if (result.getModifiedCount() > 0) {
+            return Response.ok().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Table not found").build();
+        }
     }
 
     @DELETE
     @Path("/remove/{id}")
-    public void removeTable(@PathParam("id") String idTable) {
-        tables.removeIf(table -> table.getIdTable().toString().equals(idTable));
+    public Response removeTable(@PathParam("id") String idTable) {
+        Bson filter = eq("_id", new ObjectId(idTable));
+        DeleteResult result = tableCollection.deleteOne(filter);
+        if (result.getDeletedCount() > 0) {
+            return Response.noContent().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Table not found").build();
+        }
     }
 }

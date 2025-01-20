@@ -1,13 +1,21 @@
 package com.salondethe.model;
 
 import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 public class Table {
+
+    @BsonId
     private ObjectId idTable;
+
+    @BsonProperty("idCommande")
     private ObjectId idCommande;
+
+    @BsonProperty("nomTable")
     private String nomTable;
 
-    // Constructeurs
+    // Constructors
     public Table() {}
 
     public Table(ObjectId idCommande, String nomTable) {
@@ -15,7 +23,7 @@ public class Table {
         this.nomTable = nomTable;
     }
 
-    // Getters et Setters
+    // Getters and Setters
     public ObjectId getIdTable() {
         return idTable;
     }

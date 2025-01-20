@@ -1,15 +1,29 @@
 package com.salondethe.model;
+
+import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
+
 import java.util.Date;
 import java.util.List;
 
-import org.bson.types.ObjectId;
-
 public class Commande {
+    @BsonId
     private ObjectId idCommande;
+
+    @BsonProperty("idTable")
     private ObjectId idTable;
+
+    @BsonProperty("produits")
     private List<ObjectId> produits; // Liste des IDs des produits
+
+    @BsonProperty("prixTotal")
     private double prixTotal;
+
+    @BsonProperty("etatPayement")
     private boolean etatPayement; // true = validé, false = non validé
+
+    @BsonProperty("dateCommande")
     private Date dateCommande;
 
     // Constructeurs

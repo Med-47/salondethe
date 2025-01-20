@@ -3,10 +3,17 @@ package com.salondethe.model;
 import java.util.List;
 
 import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 public class Category {
+    @BsonId
     private ObjectId idCategory;
+
+    @BsonProperty("nomCategory")
     private String nomCategory;
+
+    @BsonProperty("produits")
     private List<ObjectId> produits; // Liste des IDs des produits
 
     // Constructeurs
