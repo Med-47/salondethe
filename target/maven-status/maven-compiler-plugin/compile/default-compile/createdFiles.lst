@@ -1,12 +1,13 @@
-com\salondethe\model\Commande.class
 com\salondethe\resources\TableResource.class
-com\salondethe\utils\MongoDBConnection.class
 com\salondethe\model\Category.class
+com\salondethe\model\Produit.class
+com\salondethe\resources\CommandeResource.class
+com\salondethe\model\Commande.class
+com\salondethe\utils\MongoDBConnection.class
 com\salondethe\resources\ProduitResource.class
 com\salondethe\model\Table.class
 com\salondethe\MyResource.class
 com\salondethe\resources\CategoryResource.class
 com\salondethe\model\Serveur.class
 com\salondethe\resources\ServeurResource.class
-com\salondethe\model\Produit.class
-com\salondethe\resources\CommandeResource.class
+com\salondethe\utils\TestMongoDBConnection.class

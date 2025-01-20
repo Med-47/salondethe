@@ -14,28 +14,25 @@ import org.glassfish.jersey.server.ResourceConfig;
 import java.io.IOException;
 import java.net.URI;
 
-/**
- * Root resource (exposed at "myresource" path)
- */
-@Path("myresource")
+import org.glassfish.grizzly.http.server.HttpServer;
+
 public class MyResource {
+    public static void main(String[] args) {
+        try {
+            ResourceConfig config = new ResourceConfig()
+                    .register(CategoryResource.class)
+                    .register(CommandeResource.class)
+                    .register(ProduitResource.class)
+                    .register(ServeurResource.class)
+                    .register(TableResource.class);
 
-    public static void main(String[] args) throws IOException {
-        // Create a ResourceConfig and register all resource classes
-        ResourceConfig config = new ResourceConfig()
-                .register(CategoryResource.class)
-                .register(CommandeResource.class)
-                .register(ProduitResource.class)
-                .register(ServeurResource.class)
-                .register(TableResource.class);
+            URI baseUri = URI.create("http://localhost:8081/");
+            HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
 
-        // Start the Grizzly HTTP server
-        URI baseUri = URI.create("http://localhost:8081/");
-        GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
-
-        System.out.println("Server started at " + baseUri);
-
-        // Block the main thread to keep the server running
-        System.in.read(); // Wait for Enter key to stop the server
+            System.out.println("Server started at " + baseUri);
+            Thread.currentThread().join();
+        } catch (Exception e) {
+            e.printStackTrace(); // Logs the stack trace for debugging
+        }
     }
 }

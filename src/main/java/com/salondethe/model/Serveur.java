@@ -1,15 +1,26 @@
 package com.salondethe.model;
+
 import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 public class Serveur {
-    
+    @BsonId
     private ObjectId idServeur;
+
+    @BsonProperty("nom")
     private String nom;
+
+    @BsonProperty("numTelephone")
     private String numTelephone;
+
+    @BsonProperty("nombreCommande")
     private int nombreCommande;
+
+    @BsonProperty("montantTotal")
     private double montantTotal;
 
-    // Constructeurs
+    // Constructors
     public Serveur() {}
 
     public Serveur(String nom, String numTelephone, int nombreCommande, double montantTotal) {
@@ -19,7 +30,7 @@ public class Serveur {
         this.montantTotal = montantTotal;
     }
 
-    // Getters et Setters
+    // Getters and Setters
     public ObjectId getIdServeur() {
         return idServeur;
     }
